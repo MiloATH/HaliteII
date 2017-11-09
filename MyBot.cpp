@@ -27,21 +27,6 @@ bool all_on_team(const vector<Entity> &items, PlayerId owner){
     return true;
 }
 
-/*// EFFECT: Returns true if all ships in items are
-bool all_on_team(const vector<EntityId> &items, PlayerId owner){
-    vector<Entity> ship
-    for(docked_ship_ids)
-        map.get_ship(player_id, docked_ship_ids);
-    for(const Entity item: items){
-        if(item.owner_id != owner){
-            return false;
-        }
-    }
-    return true;
-}*/
-
-
-
 int main() {
     const hlt::Metadata metadata = hlt::initialize("UpClose");
     const hlt::PlayerId player_id = metadata.player_id;
@@ -63,6 +48,19 @@ int main() {
         moves.clear();
         const hlt::Map map = hlt::in::get_map();
         
+        // Computation for all ships
+        vector<Ship> docked_enemies;
+        for(const hlt::Planet& planet : map.planets){
+            if(planet.owned && planet.owner_id != player_id) {
+                vector<Ship> ships;
+                for(const EntityId& id : planet.docked_ships) {
+                    ships.push_back(map.get_ship(planet.owner_id, id));
+                }
+                docked_enemies.insert(docked_enemies.end(), ships.begin(), ships.end());
+            }
+        }
+        
+        
         for (const hlt::Ship& ship : map.ships.at(player_id)) {
             bool hasCommand = false;
             if (ship.docking_status != hlt::ShipDockingStatus::Undocked) {
@@ -71,7 +69,10 @@ int main() {
             std::vector<hlt::Planet> planets = map.planets;
             std::sort(planets.begin(), planets.end(), DistanceFunc(ship));
             for (const hlt::Planet& planet : planets) {
-                if (planet.is_full() && planet.owned && planet.owner_id == player_id) {
+                // Skip over this planet if it is owned by an opponent, or I own it and it is full
+                // This will prioritize docking not owned planets
+                if (planet.is_full() && planet.owned && planet.owner_id == player_id){
+               // if (planet.owned && (planet.owner_id != player_id || planet.is_full())) {
                     continue;
                 }
                 
@@ -98,12 +99,15 @@ int main() {
                 // Attack nearest enemy ship
                 
                 // Find ships not on my team
-                vector<Ship> enemies;
-                for(const pair<PlayerId, std::vector<Ship>> ship: map.ships){
-                    if(ship.first != player_id) {
-                        enemies.insert(enemies.end(), ship.second.begin(), ship.second.end());
+                vector<Ship> enemies = docked_enemies;
+                
+                // Find all enemy ships
+                /* for(const pair<PlayerId, std::vector<Ship>> players_ships: map.ships){
+                    if(players_ships.first != player_id) {
+                        enemies.insert(enemies.end(), players_ships.second.begin(), players_ships.second.end());
                     }
-                }
+                } */
+                
                 
                 // Sort by distance from me (ship)
                 sort(enemies.begin(), enemies.end(), DistanceFunc(ship));
