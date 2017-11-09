@@ -5,8 +5,6 @@
 using namespace std;
 using namespace hlt;
 
-const int MAX_MAP_DIAGONAL = 100000000;
-
 struct DistanceFunc
 {
     DistanceFunc(const Entity& _p) : p(_p) {}
@@ -73,7 +71,7 @@ int main() {
             std::vector<hlt::Planet> planets = map.planets;
             std::sort(planets.begin(), planets.end(), DistanceFunc(ship));
             for (const hlt::Planet& planet : planets) {
-                if (planet.is_full()) {
+                if (planet.is_full() && planet.owned && planet.owner_id == player_id) {
                     continue;
                 }
                 
