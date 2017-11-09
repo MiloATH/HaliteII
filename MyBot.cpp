@@ -76,13 +76,18 @@ int main() {
                 if (planet.is_full()) {
                     continue;
                 }
-
+                
                 if (ship.can_dock(planet) && !hasCommand) {
-                    moves.push_back(hlt::Move::dock(ship.entity_id, planet.entity_id));
-                    hasCommand = true;
-                    break;
+                    if ((!planet.owned || planet.owner_id == player_id)){
+                        moves.push_back(hlt::Move::dock(ship.entity_id, planet.entity_id));
+                        hasCommand = true;
+                        break;
+                    } else {
+                        // Already at the planet, but currently someone else owns the planet. Thus, move to attacking
+                        break;
+                    }
                 }
-
+                
                 const hlt::possibly<hlt::Move> move =
                         hlt::navigation::navigate_ship_to_dock(map, ship, planet, hlt::constants::MAX_SPEED);
                 if (move.second && !hasCommand) {
