@@ -141,8 +141,14 @@ int main() {
     
     const hlt::Map& initial_map = metadata.initial_map;
 
-    // Calculate the proportion of attackers to miners based on map size
-    DENOMINATOR_OF_FRACTION_OF_ATTACKER = 4 * ((initial_map.map_height * initial_map.map_width)/(240*160));
+    // Decide on number of attackers to miners
+    if(initial_map.ship_map.size() == 4){
+        // Play a more econ game when there are a lot of players.
+        DENOMINATOR_OF_FRACTION_OF_ATTACKER = 10000;
+    } else {
+        // Calculate the proportion of attackers to miners based on map size
+        DENOMINATOR_OF_FRACTION_OF_ATTACKER = 4 * ((initial_map.map_height * initial_map.map_width)/(240*160));
+    }
     
     // We now have 1 full minute to analyse the initial map.
     std::ostringstream initial_map_intelligence;
