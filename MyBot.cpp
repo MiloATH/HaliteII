@@ -5,7 +5,7 @@
 using namespace std;
 using namespace hlt;
 
-const int DENOMINATOR_OF_FRACTION_OF_ATTACKER = 6;
+int DENOMINATOR_OF_FRACTION_OF_ATTACKER = 4;
 
 static vector<Move> moves;
 static PlayerId player_id; //const
@@ -138,9 +138,12 @@ void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
 int main() {
     const hlt::Metadata metadata = hlt::initialize("DivideAndConquer");
     player_id = metadata.player_id;
-
+    
     const hlt::Map& initial_map = metadata.initial_map;
 
+    // Calculate the proportion of attackers to miners based on map size
+    DENOMINATOR_OF_FRACTION_OF_ATTACKER = 4 * ((initial_map.map_height * initial_map.map_width)/(240*160));
+    
     // We now have 1 full minute to analyse the initial map.
     std::ostringstream initial_map_intelligence;
     initial_map_intelligence
