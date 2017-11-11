@@ -6,7 +6,6 @@ using namespace std;
 using namespace hlt;
 
 int DENOMINATOR_OF_FRACTION_OF_ATTACKER = 4;
-const double RUN_AWAY_FROM_ENEMIES_WITHIN_RANGE = constants::WEAPON_RADIUS + constants::MAX_SPEED;
 
 static vector<Move> moves;
 static PlayerId player_id; //const
@@ -87,7 +86,6 @@ void miner(const Ship &ship, Map &map, vector<Ship> &docked_enemies) {
 
 
 void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
-    Log::log("ATTACKER");
     bool hasCommand = false;
     if (ship.docking_status != hlt::ShipDockingStatus::Undocked) {
         moves.push_back(Move::undock(ship.entity_id));
@@ -96,43 +94,11 @@ void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
     }
     
     if (!hasCommand){
-        // Run away from nearby (within dangerous range) undocked enemy ships.
-        // Find all enemy ships
-        vector<Ship> enemies;
-        for(const pair<PlayerId, std::vector<Ship>> players_ships: map.ships){
-            if(players_ships.first != player_id) {
-                enemies.insert(enemies.end(), players_ships.second.begin(), players_ships.second.end());
-            }
-        }
-        /*// Find nearby enemies and calculate average direction (radians)
-        double total_rads = 0;
-        int number_of_nearby_enemies = 0;
-        for(int i = 0; i < (int) enemies.size(); ++i) {
-            if(enemies[i].docking_status == ShipDockingStatus::Undocked
-               && enemies[i].location.get_distance_to(ship.location) < RUN_AWAY_FROM_ENEMIES_WITHIN_RANGE){
-                total_rads += enemies[i].location.orient_towards_in_rad(ship.location);
-                ++number_of_nearby_enemies;
-            }
-        }
-        if(number_of_nearby_enemies > 0){
-            double average_rads = total_rads/number_of_nearby_enemies;
-            // Calculate run away direction
-            // NOTE: WILL RUN INTO ALLIES IF IN THE WAY. TODO: Don't run into allies.
-            Move run_away = Move::thrust_rad(ship.entity_id, constants::MAX_SPEED, average_rads + M_PI);
-            moves.push_back(run_away);
-            ostringstream str;
-            str << "NAVIGATE AWAY. LOCATION: " << " Average Radians:" << average_rads << " Away Radians:" << (average_rads + M_PI);
-            Log::log(str.str());
-            hasCommand = true;
-            return;
-        }*/
-        
-        
         // Attack nearest enemy ship
         
         if(!docked_enemies.empty()){
             // harass docked enemy ships
-            enemies = docked_enemies;
+            vector<Ship> enemies = docked_enemies;
             sort(enemies.begin(), enemies.end(), DistanceFunc(ship));
             for(Ship enemy: enemies) {
                 const hlt::possibly<hlt::Move> move =
@@ -146,6 +112,13 @@ void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
             return;
         }
         else {
+            // Find all enemy ships
+            vector<Ship> enemies;
+            for(const pair<PlayerId, std::vector<Ship>> players_ships: map.ships){
+                if(players_ships.first != player_id) {
+                    enemies.insert(enemies.end(), players_ships.second.begin(), players_ships.second.end());
+                }
+            }
             // Sort by distance from me (ship)
             sort(enemies.begin(), enemies.end(), DistanceFunc(ship));
             for(Ship enemy: enemies) {
@@ -187,11 +160,8 @@ int main() {
             << "; planets: " << initial_map.planets.size();
     hlt::Log::log(initial_map_intelligence.str());
 
-    for (int turn = 0; true; ++turn) {
+    for (;;) {
         moves.clear();
-        ostringstream out;
-        out << "New turn:" << turn;
-        Log::log(out.str());
         hlt::Map map = hlt::in::get_map();
         
         // Computation for all ships
