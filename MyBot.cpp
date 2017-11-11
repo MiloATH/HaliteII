@@ -104,7 +104,7 @@ void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
                 enemies.insert(enemies.end(), players_ships.second.begin(), players_ships.second.end());
             }
         }
-        /*// Find nearby enemies and calculate average direction (radians)
+        // Find nearby enemies and calculate average direction (radians)
         double total_rads = 0;
         int number_of_nearby_enemies = 0;
         for(int i = 0; i < (int) enemies.size(); ++i) {
@@ -118,14 +118,14 @@ void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
             double average_rads = total_rads/number_of_nearby_enemies;
             // Calculate run away direction
             // NOTE: WILL RUN INTO ALLIES IF IN THE WAY. TODO: Don't run into allies.
-            Move run_away = Move::thrust_rad(ship.entity_id, constants::MAX_SPEED, average_rads + M_PI);
+            Move run_away = Move::thrust_rad(ship.entity_id, constants::MAX_SPEED, average_rads);
             moves.push_back(run_away);
             ostringstream str;
-            str << "NAVIGATE AWAY. LOCATION: " << " Average Radians:" << average_rads << " Away Radians:" << (average_rads + M_PI);
+            str << "NAVIGATE AWAY. LOCATION: " << " Average Radians:" << average_rads << " Away Radians:" << (average_rads);
             Log::log(str.str());
             hasCommand = true;
             return;
-        }*/
+        }
         
         
         // Attack nearest enemy ship
