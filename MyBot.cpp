@@ -34,7 +34,7 @@ void miner(const Ship &ship, Map &map, vector<Ship> &docked_enemies) {
     for (const hlt::Planet& planet : planets) {
         // Skip over this planet if it is owned by an opponent, or I own it and it is full
         // This will prioritize docking not owned planets
-        if (planet.owned && (planet.owner_id != player_id || planet.is_full())) {
+        if (planet.is_full() && planet.owned && planet.owner_id == player_id) {
             continue;
         }
         
