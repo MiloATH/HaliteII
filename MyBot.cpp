@@ -11,6 +11,11 @@ const double RUN_AWAY_FROM_ENEMIES_WITHIN_RANGE = constants::WEAPON_RADIUS + con
 static vector<Move> moves;
 static PlayerId player_id; //const
 
+void reset_round_vars() {
+    navigation::intended_locations.clear();
+    moves.clear();
+}
+
 struct DistanceFunc
 {
     DistanceFunc(const Entity& _p) : p(_p) {}
@@ -86,7 +91,7 @@ void miner(const Ship &ship, Map &map, vector<Ship> &docked_enemies) {
 }
 
 
-void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
+void attacker(const Ship &ship, Map &map, vector<Ship> &docked_enemies) {
     Log::log("ATTACKER");
     bool hasCommand = false;
     if (ship.docking_status != hlt::ShipDockingStatus::Undocked) {
@@ -118,8 +123,13 @@ void attacker(const Ship &ship, const Map &map, vector<Ship> &docked_enemies) {
             double average_rads = total_rads/number_of_nearby_enemies;
             // Calculate run away direction
             // NOTE: WILL RUN INTO ALLIES IF IN THE WAY. TODO: Don't run into allies.
-            Move run_away = Move::thrust_rad(ship.entity_id, constants::MAX_SPEED, average_rads);
-            moves.push_back(run_away);
+            /*Move run_away = Move::thrust_rad(ship.entity_id, constants::MAX_SPEED, average_rads);
+            moves.push_back(run_away);*/
+            Location run_away_loc = navigation::toLocation(ship.location, constants::MAX_SPEED, average_rads);
+            possibly<Move> move = navigation::navigate_ship_to_location(map, ship, run_away_loc);
+            if(move.second) {
+                moves.push_back(move.first);
+            }
             ostringstream str;
             str << "NAVIGATE AWAY. LOCATION: " << " Average Radians:" << average_rads << " Away Radians:" << (average_rads);
             Log::log(str.str());
@@ -188,7 +198,7 @@ int main() {
     hlt::Log::log(initial_map_intelligence.str());
 
     for (int turn = 0; true; ++turn) {
-        moves.clear();
+        reset_round_vars();
         ostringstream out;
         out << "New turn:" << turn;
         Log::log(out.str());
